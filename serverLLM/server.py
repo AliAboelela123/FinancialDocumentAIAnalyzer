@@ -9,8 +9,9 @@ from werkzeug.utils import secure_filename
 import os
 
 from serverLLM.LLMChain import get_response
-from serverLLM.embeddings_db import get_best_chunks
+from serverLLM.embeddings_db import get_best_chunks, store_embeddings,db
 from serverLLM.utilities import allowed_file
+
 
 # Flask app setup
 app = Flask(__name__)
@@ -20,6 +21,11 @@ app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 CORS(app)
 
 ALLOWED_EXTENSIONS = {'pdf'}
+
+current_directory = os.path.dirname(os.path.abspath(__file__))
+upload_directory = os.path.join(current_directory, 'uploads')
+if not os.path.exists(upload_directory):
+    os.makedirs(upload_directory)
 
 
 def allowed_file(filename):
@@ -51,14 +57,16 @@ def query_endpoint():
         pdf_files = []
 
         # File Processing
-        # if 'pdfFiles' in request.files:
-        #     files = request.files.getlist('pdfFiles')
-        #     for file in files:
-        #         if file and allowed_file(file.filename):
-        #             filename = secure_filename(file.filename)
-        #             file_path = os.path.join('/path/to/upload/directory', filename)
-        #             file.save(file_path)
-        #             pdf_files.append(file_path)
+        if 'pdfFiles' in request.files:
+            files = request.files.getlist('pdfFiles')
+            for file in files:
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file_path = os.path.join(upload_directory, filename)
+                    file.save(file_path)
+                    pdf_files.append(file_path)
+                    store_embeddings(file_path)
+                    print("File uploaded and processed successfully.")
 
         context = get_best_chunks(query)
         llm_response = get_response(query, complexity, context)
