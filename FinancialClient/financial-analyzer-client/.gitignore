@@ -10,7 +10,8 @@
 
 # production
 /build
-
+__pycache__/
+.config.py
 # misc
 .DS_Store
 .env.local
