@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: serverLLM/Dockerfile
     ports:
-      - "5000:5000"  # Map ports
+      - "5001:5001"  # Map ports
     restart: "no"
 
   react-app:

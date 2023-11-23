@@ -18,6 +18,7 @@ def get_embedding(chunk):
 
     try:
         # OpenAI's API expects a list of texts
+        openai.api_key = OPEN_AI_API_KEY
         response = openai.Embedding.create(
             input=[chunk],
             model="text-embedding-ada-002"

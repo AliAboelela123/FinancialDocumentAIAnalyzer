@@ -133,7 +133,7 @@ const QueryBar = ({ addMessage, uploadPDF, clearPDF, uploadedPDFs, setUploadedPD
         });
       }
 
-      const response = await fetch('http://127.0.0.1:5000/query', {
+      const response = await fetch('http://127.0.0.1:5001/query', {
         method: 'POST',
         body: formData,
       });
