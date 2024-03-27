@@ -3,6 +3,7 @@ import Header from './components/Header';
 import MainContent from './components/MainContent';
 import QueryBar from './components/QueryBar';
 import PDFViewer from './components/PDFViewer';
+import LoadingScreen from './components/LoadingScreen';
 import { Box, createTheme, ThemeProvider } from '@mui/material';
 import './App.css';
 
@@ -16,6 +17,8 @@ const App = () => {
   const [messages, setMessages] = useState([]);
   const [uploadedPDFs, setUploadedPDFs] = useState([]);
   const [selectedLevel, setSelectedLevel] = useState('Beginner');
+  const [isLoading, setIsLoadingApp] = useState(false);
+  const [loadingDuration, setLoadingDuration] = useState(0);
 
   const [isPdfOpen, setIsPdfOpen] = useState(false);
   const [selectedPdf, setSelectedPdf] = useState(null);
@@ -66,6 +69,7 @@ const App = () => {
 
   return (
     <ThemeProvider theme={theme}>
+      <LoadingScreen isLoading={isLoading} timerDuration={loadingDuration} />
       <div className="app">
         <Header selectedLevel={selectedLevel} setSelectedLevel={setSelectedLevel} />
         <Box sx={{ display: 'flex', width: '100%' }}>
@@ -84,6 +88,8 @@ const App = () => {
           uploadedPDFs={uploadedPDFs}
           setUploadedPDFs={setUploadedPDFs}
           selectedLevel={selectedLevel}
+          setIsLoadingApp={setIsLoadingApp}
+          setLoadingDuration={setLoadingDuration}
         />
       </div>
     </ThemeProvider>

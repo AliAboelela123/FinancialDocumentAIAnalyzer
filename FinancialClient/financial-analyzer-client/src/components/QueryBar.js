@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Button, TextField, Box, styled, Typography, IconButton, Paper
+  Button, TextField, Box, styled, Typography, IconButton, Paper, Checkbox, FormControlLabel
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import PublishIcon from '@mui/icons-material/Publish';
@@ -69,11 +69,22 @@ const StyledFileName = styled(Typography)({
   whiteSpace: 'nowrap',
 });
 
-const QueryBar = ({ addMessage, appendMessage, uploadPDF, clearPDF, uploadedPDFs, setUploadedPDFs, selectedLevel }) => {
+const QueryBar = ({ addMessage, appendMessage, uploadPDF, clearPDF, uploadedPDFs, setUploadedPDFs, selectedLevel, setIsLoadingApp, setLoadingDuration }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showReferences, setShowReferences] = useState(false);
+  const [showTables, setShowTables] = useState(false);
+
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const queryBarRef = useRef(null);
+
+  const handleCheckboxChange = (event) => {
+    if (event.target.name === "showReferences") {
+      setShowReferences(event.target.checked);
+    } else if (event.target.name === "showTables") {
+      setShowTables(event.target.checked);
+    }
+  };
 
   useEffect(() => {
     const currentRef = textareaRef.current;
@@ -124,6 +135,10 @@ const QueryBar = ({ addMessage, appendMessage, uploadPDF, clearPDF, uploadedPDFs
     addMessage(queryMessage);
   
     setIsLoading(true);
+    setIsLoadingApp(true);
+    
+    //TODO: Calculate TIME, value is in Milliseconds :D
+    setLoadingDuration(20000);
     let isFirstChunk = true;
 
     try {
@@ -157,8 +172,9 @@ const QueryBar = ({ addMessage, appendMessage, uploadPDF, clearPDF, uploadedPDFs
           const { done, value } = await reader.read();
           if (done) {
             setIsLoading(false);
-            fetchReferences();
-            fetchTables();
+            setIsLoadingApp(false);
+            if (showReferences) fetchReferences();
+            if (showTables) fetchTables();
             return;
           }
           result += decoder.decode(value, { stream: true });
@@ -200,7 +216,7 @@ const QueryBar = ({ addMessage, appendMessage, uploadPDF, clearPDF, uploadedPDFs
       textareaRef.current.value = '';
       setUploadedPDFs([]);
       setIsLoading(false);
-
+      setIsLoadingApp(false);
       
     }
   };
@@ -224,6 +240,7 @@ const QueryBar = ({ addMessage, appendMessage, uploadPDF, clearPDF, uploadedPDFs
       console.error(`Error Fetching References: ${error}`);
     } finally {
       setIsLoading(false);
+      setIsLoadingApp(false);
       textareaRef.current.value = '';
       setUploadedPDFs([]);
 
@@ -241,15 +258,17 @@ const QueryBar = ({ addMessage, appendMessage, uploadPDF, clearPDF, uploadedPDFs
       if (tableData.error) {
         console.error('Error in Table Data:', tableData.error);
       } else {
-        addMessage({ type: 'response', text: tableData.extractedTable });
+        if (tableData.extractedTable.includes('!')) {
+          addMessage({ type: 'response', text: tableData.extractedTable });
+        }
       }
     } catch (error) {
       console.error(`Error Fetching Data: ${error}`);
     } finally {
       setIsLoading(false);
+      setIsLoadingApp(false);
       textareaRef.current.value = '';
       setUploadedPDFs([]);
-
     }
   };
 
@@ -275,6 +294,30 @@ const QueryBar = ({ addMessage, appendMessage, uploadPDF, clearPDF, uploadedPDFs
               </StyledPaper>
             ))}
           </Box>
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+          <FormControlLabel
+            sx ={{ marginTop: -1 }}
+            control={
+              <Checkbox
+                checked={showReferences}
+                onChange={handleCheckboxChange}
+                name="showReferences"
+              />
+            }
+            label="Include References"
+          />
+          <FormControlLabel
+            sx ={{ marginTop: -2.5 }}
+            control={
+              <Checkbox
+                checked={showTables}
+                onChange={handleCheckboxChange}
+                name="showTables"
+              />
+            }
+            label="Include Tables"
+          />
         </Box>
         <StyledButton variant="contained" endIcon={<PublishIcon />} onClick={handleUploadClick} disabled={isLoading}>
           <Typography variant="button">Upload PDF</Typography>
